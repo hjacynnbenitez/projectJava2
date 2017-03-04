@@ -1,4 +1,5 @@
 
+import com.mysql.jdbc.PreparedStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -329,12 +330,31 @@ public class Schedule extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonRemoveActionPerformed
 
     private void jButtonFinalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFinalizeActionPerformed
-        
+        conn = Connect();
         int rowCount = jTableChosenClasses.getModel().getRowCount();
-        for(int i=0; i < rowCount; i++){
-            String query = "insert into subjectsenrolled (SYTERM, STUDNO, COURSECODE, SECTION)"
-                + "VALUES (2016-2017 3," + jTextFieldStudentNumber.getText() + "," + ")";
+        
+        try{
+            for(int i=0; i < rowCount; i++){
+                String coursecode = (String) jTableChosenClasses.getModel().getValueAt(i,0);
+                String section = (String) jTableChosenClasses.getModel().getValueAt(i, 1);
+
+                String query = "insert into subjectsenrolled (SYTERM, STUDNO, COURSECODE, SECTION)"
+                    + "VALUES (?,?,?,?)";
+
+                PreparedStatement ps = (PreparedStatement) conn.prepareStatement(query);
+                ps.setString(1, "2016-2017 3");
+                ps.setString(2, jTextFieldStudentNumber.getText());
+                ps.setString(3, coursecode);
+                ps.setString(4, section);
+                ps.execute();
+            }
+            
+            conn.close();
+            
+        }catch(Exception e){
+            
         }
+        
         
     }//GEN-LAST:event_jButtonFinalizeActionPerformed
     

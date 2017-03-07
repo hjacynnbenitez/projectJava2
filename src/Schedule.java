@@ -131,6 +131,7 @@ public class Schedule extends javax.swing.JFrame {
         jButtonFinalize = new javax.swing.JButton();
         jTextFieldTotalUnits = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
+        jLabelUnits = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Course Enlisment");
@@ -279,6 +280,8 @@ public class Schedule extends javax.swing.JFrame {
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldTotalUnits, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabelUnits, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButtonFinalize)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -305,7 +308,8 @@ public class Schedule extends javax.swing.JFrame {
                     .addComponent(jButtonRemove)
                     .addComponent(jButtonFinalize)
                     .addComponent(jTextFieldTotalUnits, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6))
+                    .addComponent(jLabel6)
+                    .addComponent(jLabelUnits, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -319,27 +323,43 @@ public class Schedule extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonSearchActionPerformed
 
     private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
-        addSchedule();
+        int units = computeTotalUnits();
+        if(units <= 15){
+            addSchedule();
+            computeTotalUnits();
+        }else if(units > 15){
+            jLabelUnits.setText("Maximum units of 15 only");
+        }
     }//GEN-LAST:event_jButtonAddActionPerformed
 
     private void jButtonRemoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveActionPerformed
         int row = jTableChosenClasses.getSelectedRow();
         addToFirstTable(row);
         deleteFromSecondTable(row);
-        computeTotalUnits();
+        int units = computeTotalUnits();
     }//GEN-LAST:event_jButtonRemoveActionPerformed
 
     private void jButtonFinalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFinalizeActionPerformed
+        int units = computeTotalUnits();
+        if(units <= 15){
+            finalizeSched();
+        }else if(units > 15){
+            jLabelUnits.setText("Maximum units of 15 only");
+        }
+        
+    }//GEN-LAST:event_jButtonFinalizeActionPerformed
+    
+    private void finalizeSched(){
         conn = Connect();
         int rowCount = jTableChosenClasses.getModel().getRowCount();
+        
+        String query = "insert into subjectsenrolled (SYTERM, STUDNO, COURSECODE, SECTION)"
+            + "VALUES (?,?,?,?)";
         
         try{
             for(int i=0; i < rowCount; i++){
                 String coursecode = (String) jTableChosenClasses.getModel().getValueAt(i,0);
                 String section = (String) jTableChosenClasses.getModel().getValueAt(i, 1);
-
-                String query = "insert into subjectsenrolled (SYTERM, STUDNO, COURSECODE, SECTION)"
-                    + "VALUES (?,?,?,?)";
 
                 PreparedStatement ps = (PreparedStatement) conn.prepareStatement(query);
                 ps.setString(1, "2016-2017 3");
@@ -354,9 +374,7 @@ public class Schedule extends javax.swing.JFrame {
         }catch(Exception e){
             
         }
-        
-        
-    }//GEN-LAST:event_jButtonFinalizeActionPerformed
+    }
     
     private void addSchedule(){
         int row = jTableCourseOfferings.getSelectedRow();
@@ -370,34 +388,40 @@ public class Schedule extends javax.swing.JFrame {
         String professor = null;
         String units = getUnits();
         
-        conn = Connect();
-        String querySchedule = "Select coursecode, section, time, day, professor from schedule where coursecode = '" + coursecode + "' and section = '" + SectionString +"'";
+        int currentUnits = computeTotalUnits();
+        int addUnits = Integer.parseInt(units);
         
-        try{
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(querySchedule);
-            
-            while(rs.next()){
-                courseCode = rs.getString("coursecode");
-                section = rs.getString("section");
-                timeSched = rs.getString("time");
-                daySched = rs.getString("day");
-                professor = rs.getString("professor");
+        if((currentUnits + addUnits) <= 15){
+            conn = Connect();
+            String querySchedule = "Select coursecode, section, time, day, professor from schedule where coursecode = '" + coursecode + "' and section = '" + SectionString +"'";
+
+            try{
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(querySchedule);
+
+                while(rs.next()){
+                    courseCode = rs.getString("coursecode");
+                    section = rs.getString("section");
+                    timeSched = rs.getString("time");
+                    daySched = rs.getString("day");
+                    professor = rs.getString("professor");
+                }
+
+                st.close(); //optional
+                rs.close(); //optional but a good practice
+
+            }catch(Exception e){
+                System.out.println(e + "\n");
             }
-            
-            st.close(); //optional
-            rs.close(); //optional but a good practice
-            
-        }catch(Exception e){
-            System.out.println(e + "\n");
+
+            Object[] data = {courseCode, section, units, timeSched + " " + daySched, professor};
+            DefaultTableModel model = (DefaultTableModel) jTableChosenClasses.getModel();
+            model.addRow(data);
+
+            deleteFromFirstTable(row);
+        }else if((currentUnits + addUnits) > 15){
+            jLabelUnits.setText("Maximum units of 15 only");
         }
-        
-        Object[] data = {courseCode, section, units, timeSched + " " + daySched, professor};
-        DefaultTableModel model = (DefaultTableModel) jTableChosenClasses.getModel();
-        model.addRow(data);
-        
-        deleteFromFirstTable(row);
-        computeTotalUnits();
     }
     
     private void deleteFromFirstTable(int row){
@@ -445,7 +469,7 @@ public class Schedule extends javax.swing.JFrame {
         }
     }
     
-    private void computeTotalUnits(){
+    private int computeTotalUnits(){
         int sum = 0;
         int rowCount = jTableChosenClasses.getRowCount();
        
@@ -459,6 +483,7 @@ public class Schedule extends javax.swing.JFrame {
         }
         
         jTextFieldTotalUnits.setText(sum + "");
+        return sum;
     }
     
     private String getUnits(){
@@ -531,6 +556,7 @@ public class Schedule extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabelUnits;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

@@ -45,6 +45,8 @@
                       <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jTextFieldTotalUnits" min="-2" pref="87" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabelUnits" min="-2" pref="201" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="jButtonFinalize" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -76,6 +78,7 @@
                   <Component id="jButtonFinalize" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jTextFieldTotalUnits" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabelUnits" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -278,6 +281,8 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="total units:"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabelUnits">
     </Component>
   </SubComponents>
 </Form>
